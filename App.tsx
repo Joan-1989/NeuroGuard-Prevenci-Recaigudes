@@ -1,25 +1,42 @@
 
 import React, { useState, useEffect } from 'react';
 import { onAuthStateChanged, auth, db, doc, onSnapshot, getUserProfile, updateDoc, messaging, onMessage } from './services/firebase';
-import { UserProfile, RelapseManual, DiaryEntry } from './types';
+import { UserProfile, RelapseManual, DiaryEntry, Memory, DailyStat } from './types';
 import Auth from './components/Auth';
 import ManualDashboard from './components/ManualDashboard';
 import CrisisComponent from './components/CrisisComponent';
 import Theory from './components/Theory';
 import Profile from './components/Profile';
-import RoleplayGame from './components/RoleplayGame'; // Bonus feature retained
+import RoleplayGame from './components/RoleplayGame';
 import SosButton from './components/SosButton';
 import Planner from './components/Planner';
-import { BookOpen, Shield, PenTool, User as UserIcon, LogOut, Menu, X, BrainCircuit, Calendar } from 'lucide-react';
-import { collection, addDoc, query, orderBy, serverTimestamp } from './services/firebase';
+import Dashboard from './components/Dashboard';
+import VitalityBattery from './components/VitalityBattery';
+import RealLifeAlbum from './components/RealLifeAlbum';
+import CorporateLearningHub from './components/CorporateLearningHub';
+import CoolingOffTimer from './components/CoolingOffTimer';
+import { BookOpen, Shield, PenTool, User as UserIcon, LogOut, Menu, X, BrainCircuit, Calendar, LayoutDashboard, Camera, GraduationCap, Clock } from 'lucide-react';
+import { collection, addDoc, query, orderBy, serverTimestamp, arrayUnion } from './services/firebase';
+
+// Mock Data for Dashboard
+const MOCK_STATS: DailyStat[] = [
+  { day: 'Dl', anxiety: 65, screentime: 4.5 },
+  { day: 'Dt', anxiety: 55, screentime: 3.2 },
+  { day: 'Dc', anxiety: 40, screentime: 2.8 },
+  { day: 'Dj', anxiety: 45, screentime: 3.0 },
+  { day: 'Dv', anxiety: 30, screentime: 2.1 },
+  { day: 'Ds', anxiety: 25, screentime: 1.5 },
+  { day: 'Dg', anxiety: 20, screentime: 1.2 },
+];
 
 export default function App() {
   const [user, setUser] = useState<any>(null);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [activeManual, setActiveManual] = useState<RelapseManual | null>(null);
-  const [view, setView] = useState<'manual' | 'theory' | 'diary' | 'profile' | 'crisis' | 'roleplay' | 'planner'>('manual');
+  const [view, setView] = useState<'dashboard' | 'manual' | 'theory' | 'diary' | 'profile' | 'crisis' | 'roleplay' | 'planner' | 'loot' | 'learning'>('dashboard');
   const [loading, setLoading] = useState(true);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [showCoolingOff, setShowCoolingOff] = useState(false);
 
   // Auth Listener
   useEffect(() => {
@@ -42,10 +59,8 @@ export default function App() {
   useEffect(() => {
     onMessage(messaging, (payload) => {
       console.log('Message received. ', payload);
-      // Optional: Display a toast or custom alert here
       if (payload.notification) {
           const { title, body } = payload.notification;
-          // Simple browser notification if allowed
           if (Notification.permission === 'granted') {
               new Notification(title || 'Nova notificació', {
                   body: body || '',
@@ -71,7 +86,7 @@ export default function App() {
     return unsubscribe;
   }, [user, userProfile]);
 
-  // --- Diary Logic (Simplified inside App for now) ---
+  // --- Diary Logic ---
   const [diaryEntries, setDiaryEntries] = useState<DiaryEntry[]>([]);
   const [newDiaryText, setNewDiaryText] = useState('');
 
@@ -92,6 +107,33 @@ export default function App() {
        createdAt: serverTimestamp()
     });
     setNewDiaryText('');
+  };
+
+  // --- Memories / Loot Logic ---
+  const [memories, setMemories] = useState<Memory[]>([]);
+  
+  useEffect(() => {
+    if(!user) return;
+    // For demo purposes, we are fetching memories from a subcollection or the user profile directly
+    // Ideally this would be a real-time listener on a subcollection
+    // Here we simulate it with local state or fetching if implemented
+  }, [user]);
+
+  const handleAddMemory = async (note: string, imageUrl?: string) => {
+      // In a real app, save to Firestore subcollection
+      const newMemory: Memory = {
+          id: Date.now(),
+          note,
+          date: new Date().toLocaleDateString(),
+          type: 'Moment Real',
+          imageUrl: imageUrl
+      };
+      setMemories([newMemory, ...memories]);
+      // Also update vitality battery as a reward
+      if(userProfile) {
+          const newCurrency = userProfile.currency + 50; // XP
+          await updateDoc(doc(db, "users", user.uid), { currency: newCurrency });
+      }
   };
 
 
@@ -125,15 +167,19 @@ export default function App() {
         </div>
         
         <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
-          <p className="px-4 text-xs font-bold text-slate-400 uppercase mt-4 mb-2">Principal</p>
+          <NavItem id="dashboard" label="Panell Principal" icon={LayoutDashboard} />
+          
+          <p className="px-4 text-xs font-bold text-slate-400 uppercase mt-4 mb-2">Eines Terapèutiques</p>
           <NavItem id="manual" label="El Meu Manual" icon={BookOpen} />
           <NavItem id="planner" label="Planificació" icon={Calendar} />
           <NavItem id="crisis" label="Pla de Crisi" icon={Shield} />
           <NavItem id="diary" label="Diari Personal" icon={PenTool} />
+          <NavItem id="loot" label="Àlbum (The Loot)" icon={Camera} />
           
           <p className="px-4 text-xs font-bold text-slate-400 uppercase mt-6 mb-2">Aprenentatge</p>
           <NavItem id="theory" label="Marc Teòric" icon={BrainCircuit} />
-          <NavItem id="roleplay" label="Entrenament (Roleplay)" icon={UserIcon} />
+          <NavItem id="learning" label="Formació (Hub)" icon={GraduationCap} />
+          <NavItem id="roleplay" label="Entrenament" icon={UserIcon} />
 
           <p className="px-4 text-xs font-bold text-slate-400 uppercase mt-6 mb-2">Configuració</p>
           <NavItem id="profile" label="El Meu Perfil" icon={UserIcon} />
@@ -161,11 +207,14 @@ export default function App() {
       {mobileMenuOpen && (
         <div className="md:hidden fixed inset-0 bg-white z-10 pt-20 px-4 pb-4 overflow-y-auto">
            <nav className="space-y-2">
+             <NavItem id="dashboard" label="Panell Principal" icon={LayoutDashboard} />
              <NavItem id="manual" label="El Meu Manual" icon={BookOpen} />
              <NavItem id="planner" label="Planificació" icon={Calendar} />
              <NavItem id="crisis" label="Pla de Crisi" icon={Shield} />
              <NavItem id="diary" label="Diari Personal" icon={PenTool} />
+             <NavItem id="loot" label="Àlbum (The Loot)" icon={Camera} />
              <NavItem id="theory" label="Marc Teòric" icon={BrainCircuit} />
+             <NavItem id="learning" label="Formació (Hub)" icon={GraduationCap} />
              <NavItem id="roleplay" label="Entrenament" icon={UserIcon} />
              <NavItem id="profile" label="El Meu Perfil" icon={UserIcon} />
              <div className="h-px bg-slate-100 my-4"></div>
@@ -179,6 +228,23 @@ export default function App() {
       {/* Main Content */}
       <main className={`flex-1 min-h-screen transition-all duration-300 ${mobileMenuOpen ? 'blur-sm md:blur-none' : ''} md:ml-72 pt-20 md:pt-8 px-4 md:px-8 pb-24`}>
         
+        {view === 'dashboard' && userProfile && (
+            <div className="space-y-8 animate-fadeIn">
+                <div className="flex flex-col lg:flex-row gap-8">
+                    <div className="flex-1">
+                        <Dashboard user={userProfile} data={MOCK_STATS} />
+                    </div>
+                    <div className="lg:w-1/3">
+                        <VitalityBattery 
+                            percentage={75} 
+                            onRecharge={() => setView('loot')} 
+                            draining={false} 
+                        />
+                    </div>
+                </div>
+            </div>
+        )}
+
         {view === 'manual' && activeManual && userProfile && (
            <ManualDashboard manual={activeManual} manualId={userProfile.activeManualId} userId={user.uid} />
         )}
@@ -188,7 +254,7 @@ export default function App() {
         )}
 
         {view === 'crisis' && activeManual && userProfile && (
-           <div className="max-w-2xl mx-auto space-y-6">
+           <div className="max-w-2xl mx-auto space-y-6 animate-fadeIn">
               <CrisisComponent 
                 plan={activeManual.crisisPlan} 
                 onUpdate={(newPlan) => {
@@ -196,11 +262,25 @@ export default function App() {
                   updateDoc(manualRef, { crisisPlan: newPlan });
                 }} 
               />
-              <div className="bg-white p-6 rounded-3xl border border-gray-200 shadow-sm mt-6">
-                <h3 className="font-bold text-lg mb-4 text-center">Necessites una pausa ara mateix?</h3>
-                <SosButton profileType="adult" /> 
-                <p className="text-center text-xs text-slate-400 mt-4">Activar el botó obrirà la pantalla d'Urge Surfing.</p>
-             </div>
+              
+              <div className="grid md:grid-cols-2 gap-4 mt-6">
+                  <div className="bg-white p-6 rounded-3xl border border-gray-200 shadow-sm">
+                    <h3 className="font-bold text-lg mb-4 text-center">Protocol SOS</h3>
+                    <SosButton profileType="adult" /> 
+                    <p className="text-center text-xs text-slate-400 mt-4">Activar el botó obrirà la pantalla d'Urge Surfing.</p>
+                 </div>
+                 
+                 <div className="bg-white p-6 rounded-3xl border border-gray-200 shadow-sm flex flex-col justify-center items-center text-center">
+                    <h3 className="font-bold text-lg mb-4">Temps de Reflexió</h3>
+                    <p className="text-sm text-slate-500 mb-6">Abans d'una compra o acció impulsiva, activa el comptador.</p>
+                    <button 
+                        onClick={() => setShowCoolingOff(true)}
+                        className="bg-teal-600 hover:bg-teal-700 text-white font-bold py-3 px-6 rounded-full flex items-center gap-2 transition-all"
+                    >
+                        <Clock className="w-5 h-5" /> Iniciar 20 Min
+                    </button>
+                 </div>
+              </div>
            </div>
         )}
 
@@ -231,6 +311,20 @@ export default function App() {
            </div>
         )}
 
+        {view === 'loot' && (
+            <div className="h-[calc(100vh-120px)] animate-fadeIn">
+                <RealLifeAlbum 
+                    memories={memories} 
+                    onAddMemory={(note, img) => handleAddMemory(note, img)} 
+                    canAdd={true} 
+                />
+            </div>
+        )}
+
+        {view === 'learning' && userProfile && (
+            <CorporateLearningHub user={userProfile} />
+        )}
+
         {view === 'theory' && <Theory />}
         
         {view === 'roleplay' && <div className="max-w-3xl mx-auto"><RoleplayGame /></div>}
@@ -238,6 +332,17 @@ export default function App() {
         {view === 'profile' && userProfile && <Profile user={userProfile} />}
 
       </main>
+
+      {/* Cooling Off Timer Overlay */}
+      {showCoolingOff && (
+          <CoolingOffTimer 
+            onCancel={() => setShowCoolingOff(false)}
+            onComplete={() => {
+                setShowCoolingOff(false);
+                alert("Temps de reflexió completat. Com et sents ara?");
+            }}
+          />
+      )}
 
     </div>
   );

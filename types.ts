@@ -136,4 +136,5 @@ export interface Memory {
   note: string;
   date: string;
   type: string;
+  imageUrl?: string;
 }
