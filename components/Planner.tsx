@@ -28,6 +28,11 @@ const Planner: React.FC<PlannerProps> = ({ manual, manualId, userId, onNavigateT
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [viewMode, setViewMode] = useState<'week' | 'day'>('day');
 
+  // Sync local state with manual prop when it changes (e.g. background updates)
+  useEffect(() => {
+    setLocalPlan(manual.selfCarePlan || {});
+  }, [manual]);
+
   // Load Diary Entries to check for links
   useEffect(() => {
     const q = query(collection(db, `users/${userId}/diaryEntries`), orderBy("createdAt", "desc"));
@@ -46,10 +51,28 @@ const Planner: React.FC<PlannerProps> = ({ manual, manualId, userId, onNavigateT
 
   const getFormattedDate = (date: Date) => date.toISOString().split('T')[0];
 
-  const handleCellChange = (day: string, area: string, value: string) => {
+  // Helper to get dates for the current week view
+  const getWeekDates = (baseDate: Date) => {
+    const currentDay = baseDate.getDay(); // 0 (Sun) to 6 (Sat)
+    const mondayOffset = currentDay === 0 ? -6 : 1 - currentDay; // Calculate diff to Monday
+    const mondayDate = new Date(baseDate);
+    mondayDate.setDate(baseDate.getDate() + mondayOffset);
+
+    return Array.from({ length: 7 }).map((_, i) => {
+      const d = new Date(mondayDate);
+      d.setDate(mondayDate.getDate() + i);
+      return {
+        dateObj: d,
+        dateStr: getFormattedDate(d),
+        dayName: DAYS[i]
+      };
+    });
+  };
+
+  const handleCellChange = (dateKey: string, area: string, value: string) => {
     setLocalPlan(prev => ({
       ...prev,
-      [`${area}-${day}`]: value
+      [`${area}-${dateKey}`]: value
     }));
   };
 
@@ -74,10 +97,11 @@ const Planner: React.FC<PlannerProps> = ({ manual, manualId, userId, onNavigateT
 
   const currentDayName = getDayName(selectedDate);
   const currentDateStr = getFormattedDate(selectedDate);
+  const weekDates = getWeekDates(selectedDate);
 
-  const getLinkedEntry = (areaId: string) => {
+  const getLinkedEntry = (dateStr: string, areaId: string) => {
     return diaryEntries.find(e => 
-      e.linkedActivity?.date === currentDateStr && 
+      e.linkedActivity?.date === dateStr && 
       e.linkedActivity?.area === areaId
     );
   };
@@ -147,14 +171,14 @@ const Planner: React.FC<PlannerProps> = ({ manual, manualId, userId, onNavigateT
           <div className="flex items-baseline gap-3 mb-6">
             <h3 className="text-2xl font-bold text-slate-800 capitalize">{currentDayName}</h3>
             <span className="text-slate-400 font-medium">
-              {selectedDate.toLocaleDateString('ca-ES', { day: 'numeric', month: 'long' })}
+              {selectedDate.toLocaleDateString('ca-ES', { day: 'numeric', month: 'long', year: 'numeric' })}
             </span>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {AREAS.map(area => {
-              const key = `${area.id}-${currentDayName}`;
-              const linkedEntry = getLinkedEntry(area.id);
+              const key = `${area.id}-${currentDateStr}`; // Specific Date Key
+              const linkedEntry = getLinkedEntry(currentDateStr, area.id);
               const activityText = localPlan[key] || '';
 
               return (
@@ -190,8 +214,8 @@ const Planner: React.FC<PlannerProps> = ({ manual, manualId, userId, onNavigateT
 
                   <textarea
                     value={activityText}
-                    onChange={(e) => handleCellChange(currentDayName, area.id, e.target.value)}
-                    placeholder={`Quina activitat ${area.label.toLowerCase()} faràs avui?`}
+                    onChange={(e) => handleCellChange(currentDateStr, area.id, e.target.value)}
+                    placeholder={`Activitat per ${currentDayName} (${area.label})...`}
                     className={`w-full h-32 p-4 rounded-xl border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 outline-none resize-none transition-all text-slate-700 placeholder:text-slate-400 ${area.ring}`}
                   />
                   
@@ -215,9 +239,10 @@ const Planner: React.FC<PlannerProps> = ({ manual, manualId, userId, onNavigateT
               <thead>
                 <tr className="bg-slate-50 border-b border-slate-200">
                   <th className="p-4 text-left font-bold text-slate-400 uppercase text-xs w-32 sticky left-0 bg-slate-50 z-10">Àrea</th>
-                  {DAYS.map(day => (
-                    <th key={day} className={`p-4 text-center font-bold min-w-[160px] ${day === currentDayName ? 'text-orange-600 bg-orange-50' : 'text-slate-700'}`}>
-                      {day}
+                  {weekDates.map(d => (
+                    <th key={d.dateStr} className={`p-4 text-center min-w-[160px] ${d.dateStr === currentDateStr ? 'bg-orange-50' : ''}`}>
+                      <div className={`font-bold ${d.dateStr === currentDateStr ? 'text-orange-600' : 'text-slate-700'}`}>{d.dayName}</div>
+                      <div className="text-xs text-slate-400 font-normal">{new Date(d.dateObj).getDate()}</div>
                     </th>
                   ))}
                 </tr>
@@ -230,16 +255,16 @@ const Planner: React.FC<PlannerProps> = ({ manual, manualId, userId, onNavigateT
                         <span>{area.icon}</span> {area.label}
                       </div>
                     </td>
-                    {DAYS.map(day => {
-                      const key = `${area.id}-${day}`;
-                      const isToday = day === currentDayName;
+                    {weekDates.map(d => {
+                      const key = `${area.id}-${d.dateStr}`;
+                      const isSelected = d.dateStr === currentDateStr;
                       return (
-                        <td key={day} className={`p-2 border-r border-slate-50 last:border-0 align-top ${isToday ? 'bg-orange-50/30' : ''}`}>
+                        <td key={d.dateStr} className={`p-2 border-r border-slate-50 last:border-0 align-top ${isSelected ? 'bg-orange-50/30' : ''}`}>
                           <textarea
                             value={localPlan[key] || ''}
-                            onChange={(e) => handleCellChange(day, area.id, e.target.value)}
+                            onChange={(e) => handleCellChange(d.dateStr, area.id, e.target.value)}
                             placeholder="..."
-                            className={`w-full h-24 p-3 text-sm bg-transparent border-2 border-transparent hover:border-slate-200 focus:bg-white rounded-lg resize-none transition-all outline-none ${isToday ? 'focus:border-orange-400' : 'focus:border-slate-300'}`}
+                            className={`w-full h-24 p-3 text-sm bg-transparent border-2 border-transparent hover:border-slate-200 focus:bg-white rounded-lg resize-none transition-all outline-none ${isSelected ? 'focus:border-orange-400' : 'focus:border-slate-300'}`}
                           />
                         </td>
                       );

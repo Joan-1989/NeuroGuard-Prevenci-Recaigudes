@@ -1,6 +1,6 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { CrisisPlan } from '../types';
+import { Bell, BellOff } from 'lucide-react';
 
 interface CrisisComponentProps {
   plan: CrisisPlan;
@@ -11,6 +11,14 @@ const CrisisComponent: React.FC<CrisisComponentProps> = ({ plan, onUpdate }) => 
   const [isEditing, setIsEditing] = useState(false);
   const [tempPlan, setTempPlan] = useState(plan);
   const [isSaving, setIsSaving] = useState(false);
+  
+  // Local state for notification toggles (simulated persistence for this session)
+  const [notifications, setNotifications] = useState({
+    signal: false,
+    action: false,
+    contact: false
+  });
+
   const autosaveTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   // Autosave logic
@@ -46,6 +54,42 @@ const CrisisComponent: React.FC<CrisisComponentProps> = ({ plan, onUpdate }) => 
     setTempPlan({ ...tempPlan, [field]: value });
   };
 
+  const requestNotificationPermission = async () => {
+    if (!("Notification" in window)) {
+      alert("Aquest navegador no suporta notificacions d'escriptori");
+      return false;
+    }
+    
+    if (Notification.permission === "granted") {
+      return true;
+    }
+    
+    if (Notification.permission !== "denied") {
+      const permission = await Notification.requestPermission();
+      return permission === "granted";
+    }
+    return false;
+  };
+
+  const toggleNotification = async (field: 'signal' | 'action' | 'contact') => {
+    const hasPermission = await requestNotificationPermission();
+    if (hasPermission) {
+      setNotifications(prev => {
+        const newState = !prev[field];
+        if (newState) {
+          // Simulate scheduling notification
+          new Notification("Recordatori Activat", {
+            body: `T'avisarem sobre el teu ${field === 'signal' ? 'senyal d\'alarma' : field === 'action' ? 'pla d\'acció' : 'contacte clau'}.`,
+            icon: '/logo.ico'
+          });
+        }
+        return { ...prev, [field]: newState };
+      });
+    } else {
+      alert("Has de permetre les notificacions per activar aquesta funció.");
+    }
+  };
+
   return (
     <div className="w-full">
       <div className="bg-emerald-50 border-2 border-emerald-200 rounded-3xl p-6 shadow-sm relative overflow-hidden">
@@ -73,7 +117,12 @@ const CrisisComponent: React.FC<CrisisComponentProps> = ({ plan, onUpdate }) => 
         {isEditing ? (
           <div className="space-y-4 animate-fadeIn relative z-10">
             <div>
-              <label className="block text-sm font-bold text-emerald-800 mb-1">1. Reconeixement (Quan noti...)</label>
+              <div className="flex justify-between items-center mb-1">
+                <label className="block text-sm font-bold text-emerald-800">1. Reconeixement (Quan noti...)</label>
+                <button onClick={() => toggleNotification('signal')} className="text-emerald-600 hover:text-emerald-800" title="Activar recordatori">
+                  {notifications.signal ? <Bell size={16} fill="currentColor" /> : <BellOff size={16} />}
+                </button>
+              </div>
               <input 
                 type="text" 
                 value={tempPlan.signal} 
@@ -83,7 +132,12 @@ const CrisisComponent: React.FC<CrisisComponentProps> = ({ plan, onUpdate }) => 
               />
             </div>
             <div>
-              <label className="block text-sm font-bold text-emerald-800 mb-1">2. Acció Immediata (Faré...)</label>
+              <div className="flex justify-between items-center mb-1">
+                <label className="block text-sm font-bold text-emerald-800">2. Acció Immediata (Faré...)</label>
+                <button onClick={() => toggleNotification('action')} className="text-emerald-600 hover:text-emerald-800" title="Activar recordatori">
+                  {notifications.action ? <Bell size={16} fill="currentColor" /> : <BellOff size={16} />}
+                </button>
+              </div>
               <input 
                 type="text" 
                 value={tempPlan.action} 
@@ -93,7 +147,12 @@ const CrisisComponent: React.FC<CrisisComponentProps> = ({ plan, onUpdate }) => 
               />
             </div>
             <div>
-              <label className="block text-sm font-bold text-emerald-800 mb-1">3. Contacte Clau (Trucaré a...)</label>
+              <div className="flex justify-between items-center mb-1">
+                <label className="block text-sm font-bold text-emerald-800">3. Contacte Clau (Trucaré a...)</label>
+                <button onClick={() => toggleNotification('contact')} className="text-emerald-600 hover:text-emerald-800" title="Activar recordatori">
+                  {notifications.contact ? <Bell size={16} fill="currentColor" /> : <BellOff size={16} />}
+                </button>
+              </div>
               <input 
                 type="text" 
                 value={tempPlan.contact} 
@@ -122,18 +181,27 @@ const CrisisComponent: React.FC<CrisisComponentProps> = ({ plan, onUpdate }) => 
         ) : (
           <div className="space-y-4 relative z-10">
             {/* Targeta Visualització */}
-            <div className="bg-white/80 backdrop-blur-sm p-4 rounded-xl border border-emerald-100 shadow-sm">
-              <span className="block text-xs uppercase tracking-wider text-emerald-600 font-bold mb-1">SI NOTO...</span>
+            <div className="bg-white/80 backdrop-blur-sm p-4 rounded-xl border border-emerald-100 shadow-sm relative">
+              <div className="flex justify-between items-start">
+                <span className="block text-xs uppercase tracking-wider text-emerald-600 font-bold mb-1">SI NOTO...</span>
+                {notifications.signal && <Bell size={12} className="text-emerald-500" fill="currentColor" />}
+              </div>
               <p className="text-lg font-medium text-slate-800">{plan.signal || "Encara no definit"}</p>
             </div>
             
             <div className="flex gap-4">
-               <div className="bg-white/80 backdrop-blur-sm p-4 rounded-xl border border-emerald-100 shadow-sm flex-1">
-                <span className="block text-xs uppercase tracking-wider text-emerald-600 font-bold mb-1">ACCIÓ</span>
+               <div className="bg-white/80 backdrop-blur-sm p-4 rounded-xl border border-emerald-100 shadow-sm flex-1 relative">
+                <div className="flex justify-between items-start">
+                    <span className="block text-xs uppercase tracking-wider text-emerald-600 font-bold mb-1">ACCIÓ</span>
+                    {notifications.action && <Bell size={12} className="text-emerald-500" fill="currentColor" />}
+                </div>
                 <p className="text-lg font-medium text-slate-800">{plan.action || "Encara no definit"}</p>
               </div>
-              <div className="bg-white/80 backdrop-blur-sm p-4 rounded-xl border border-emerald-100 shadow-sm flex-1">
-                <span className="block text-xs uppercase tracking-wider text-emerald-600 font-bold mb-1">CONTACTE</span>
+              <div className="bg-white/80 backdrop-blur-sm p-4 rounded-xl border border-emerald-100 shadow-sm flex-1 relative">
+                <div className="flex justify-between items-start">
+                    <span className="block text-xs uppercase tracking-wider text-emerald-600 font-bold mb-1">CONTACTE</span>
+                    {notifications.contact && <Bell size={12} className="text-emerald-500" fill="currentColor" />}
+                </div>
                 <p className="text-lg font-medium text-slate-800">{plan.contact || "Encara no definit"}</p>
               </div>
             </div>

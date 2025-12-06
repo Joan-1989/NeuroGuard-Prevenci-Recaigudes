@@ -1,6 +1,5 @@
-
 import React, { useState, useEffect } from 'react';
-import { onAuthStateChanged, auth, db, doc, onSnapshot, getUserProfile, updateDoc, messaging, onMessage } from './services/firebase';
+import { onAuthStateChanged, auth, db, doc, onSnapshot, updateDoc, messaging, onMessage } from './services/firebase';
 import { UserProfile, RelapseManual, DiaryEntry, Memory, DailyStat } from './types';
 import Auth from './components/Auth';
 import ManualDashboard from './components/ManualDashboard';
@@ -20,7 +19,7 @@ import {
   BrainCircuit, Calendar, LayoutDashboard, Camera, GraduationCap, 
   Clock, PauseCircle, Zap
 } from 'lucide-react';
-import { collection, addDoc, query, orderBy, serverTimestamp, arrayUnion } from './services/firebase';
+import { collection, addDoc, query, orderBy, serverTimestamp } from './services/firebase';
 
 // Mock Data for Dashboard
 const MOCK_STATS: DailyStat[] = [
@@ -47,21 +46,33 @@ export default function App() {
   const [newDiaryText, setNewDiaryText] = useState('');
   const [diaryLinkedActivity, setDiaryLinkedActivity] = useState<{date: string, area: string} | undefined>(undefined);
 
-  // Auth Listener
+  // Auth & Profile Listener
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (u) => {
+    let profileUnsubscribe: () => void;
+
+    const authUnsubscribe = onAuthStateChanged(auth, (u) => {
       setUser(u);
       if (u) {
-        // Fetch Profile
-        const profile = await getUserProfile(u.uid);
-        setUserProfile(profile);
+        // Listen to User Profile changes in real-time
+        // This fixes the issue where archiving a manual didn't update the UI immediately
+        const userRef = doc(db, "users", u.uid);
+        profileUnsubscribe = onSnapshot(userRef, (docSnap) => {
+          if (docSnap.exists()) {
+            setUserProfile({ id: docSnap.id, ...docSnap.data() } as UserProfile);
+          }
+        });
       } else {
         setUserProfile(null);
         setActiveManual(null);
+        if (profileUnsubscribe) profileUnsubscribe();
       }
       setLoading(false);
     });
-    return unsubscribe;
+
+    return () => {
+      authUnsubscribe();
+      if (profileUnsubscribe) profileUnsubscribe();
+    };
   }, []);
 
   // Notification Listener (Foreground)
@@ -91,10 +102,13 @@ export default function App() {
     const unsubscribe = onSnapshot(manualRef, (doc) => {
       if (doc.exists()) {
         setActiveManual({ id: doc.id, ...doc.data() } as RelapseManual);
+      } else {
+        // Handle case where manual ID exists in profile but doc is missing
+        console.warn("Manual actiu no trobat");
       }
     });
     return unsubscribe;
-  }, [user, userProfile]);
+  }, [user, userProfile?.activeManualId]); // Depend on activeManualId to switch listeners when archiving
 
   // --- Diary Logic ---
   useEffect(() => {
@@ -286,10 +300,12 @@ export default function App() {
                 </div>
                 {/* Quick Access Grid */}
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    <button onClick={() => setView('crisis')} className="p-4 bg-red-50 border border-red-100 rounded-xl hover:shadow-md transition-all text-center group">
-                        <Shield className="w-8 h-8 text-red-500 mx-auto mb-2 group-hover:scale-110 transition-transform"/>
-                        <span className="font-bold text-red-700">SOS / Crisi</span>
-                    </button>
+                    {/* NEW SOS BUTTON ON DASHBOARD */}
+                    <div className="p-4 bg-red-50 border border-red-100 rounded-xl hover:shadow-md transition-all text-center group flex flex-col items-center justify-center cursor-pointer">
+                        <SosButton profileType={userProfile.type} inline={true} />
+                        <span className="text-xs text-red-600 font-bold mt-2">Emergència</span>
+                    </div>
+
                     <button onClick={() => setView('planner')} className="p-4 bg-blue-50 border border-blue-100 rounded-xl hover:shadow-md transition-all text-center group">
                         <Calendar className="w-8 h-8 text-blue-500 mx-auto mb-2 group-hover:scale-110 transition-transform"/>
                         <span className="font-bold text-blue-700">Agenda</span>
@@ -338,7 +354,7 @@ export default function App() {
                   <div className="bg-white p-8 rounded-3xl border border-gray-200 shadow-lg flex flex-col items-center text-center hover:border-blue-300 transition-colors">
                     <h3 className="font-bold text-xl mb-4 text-slate-800">Protocol d'Emergència</h3>
                     <p className="text-sm text-slate-500 mb-6">Si sents que perds el control, activa l'Urge Surfing.</p>
-                    <SosButton profileType="adult" /> 
+                    <SosButton profileType="adult" inline={true} /> 
                  </div>
                  
                  <div className="bg-white p-8 rounded-3xl border border-gray-200 shadow-lg flex flex-col justify-center items-center text-center hover:border-teal-300 transition-colors">

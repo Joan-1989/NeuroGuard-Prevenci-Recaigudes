@@ -1,7 +1,7 @@
 
 import React, { useState, useRef } from 'react';
 import { Memory } from '../types';
-import { Camera, Image as ImageIcon, Sparkles, Loader, X } from 'lucide-react';
+import { Camera, Image as ImageIcon, Sparkles, Loader, X, Lock } from 'lucide-react';
 import { generateMemoryImage } from '../services/geminiService';
 
 interface RealLifeAlbumProps {

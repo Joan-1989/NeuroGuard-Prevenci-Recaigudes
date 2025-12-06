@@ -1,7 +1,9 @@
-
 import { GoogleGenAI, Type } from "@google/genai";
 import { RoleplayScenario } from "../types";
 
+// Note: For Veo (Video), we need to ensure the API key is passed dynamically if possible,
+// but standard initialization uses process.env.API_KEY.
+// The UI will handle the specific API key selection for Veo if needed via window.aistudio.
 const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
 const SYSTEM_INSTRUCTION = `
@@ -108,26 +110,11 @@ export const generateMemoryImage = async (memoryText: string): Promise<string | 
       La imatge ha de transmetre calma i positivitat.
     `;
     
-    // Using generateContent with image model since generateImages is deprecated/different signature in SDK
-    // Actually, checking guidelines: gemini-2.5-flash-image generates text FROM image.
-    // For TEXT TO IMAGE, guidelines say: use `gemini-3-pro-image-preview` with generateContent.
-    
-    // However, since we can't reliably predict if the user key supports image gen (paid feature often),
-    // and standard flash models don't generate images, we will simulate this or use a placeholder if it fails.
-    // But per instructions: "Generate images using gemini-2.5-flash-image by default".
-    // Wait, "gemini-2.5-flash-image" is usually vision (image to text).
-    // The guidelines say: "High-Quality Image Generation... gemini-3-pro-image-preview".
-    // "General Image Generation... gemini-2.5-flash-image".
-    
-    // Let's try to follow the guideline for generation.
     const response = await ai.models.generateContent({
-      model: 'gemini-2.5-flash-image', // Per user guidelines for general image gen
+      model: 'gemini-2.5-flash-image', 
       contents: prompt,
     });
 
-    // We need to parse the response to find the image bytes.
-    // The guidelines say: "The output response may contain both image and text parts; you must iterate through all parts to find the image part."
-    
     if (response.candidates && response.candidates[0].content.parts) {
       for (const part of response.candidates[0].content.parts) {
         if (part.inlineData) {
@@ -140,4 +127,74 @@ export const generateMemoryImage = async (memoryText: string): Promise<string | 
     console.error("Error generating memory image:", error);
     return null; 
   }
-}
+};
+
+export const generateEducationalVideo = async (topic: string, description: string): Promise<string | null> => {
+  let retryCount = 0;
+  const maxRetries = 1;
+
+  while (retryCount <= maxRetries) {
+    try {
+      // Check for API Key selection for Veo models (Mandatory)
+      if (window.aistudio && window.aistudio.hasSelectedApiKey) {
+          const hasKey = await window.aistudio.hasSelectedApiKey();
+          if (!hasKey) {
+              await window.aistudio.openSelectKey();
+          }
+      }
+
+      // Re-initialize AI client to ensure it picks up the potentially newly selected key
+      // In a real scenario, the key might be injected via environment, but Veo often requires explicit user selection in demos.
+      const veoAi = new GoogleGenAI({ apiKey: process.env.API_KEY });
+
+      const prompt = `Educational video about ${topic}. Visual style: minimal, modern motion graphics, calm colors. Content: ${description.substring(0, 200)}`;
+
+      let operation = await veoAi.models.generateVideos({
+          model: 'veo-3.1-fast-generate-preview',
+          prompt: prompt,
+          config: {
+              numberOfVideos: 1,
+              resolution: '720p',
+              aspectRatio: '16:9'
+          }
+      });
+
+      // Polling
+      while (!operation.done) {
+          await new Promise(resolve => setTimeout(resolve, 5000)); // Wait 5 seconds
+          operation = await veoAi.operations.getVideosOperation({ operation: operation });
+      }
+
+      const downloadLink = operation.response?.generatedVideos?.[0]?.video?.uri;
+      if (downloadLink) {
+          // We need to fetch the blob to display it, appending the key
+          const videoResponse = await fetch(`${downloadLink}&key=${process.env.API_KEY}`);
+          const blob = await videoResponse.blob();
+          return URL.createObjectURL(blob);
+      }
+
+      return null;
+
+    } catch (error: any) {
+      console.error("Error generating video:", error);
+      
+      const errorMessage = error.toString();
+      // If "Requested entity was not found" (404), it indicates a key/project issue.
+      if (errorMessage.includes("Requested entity was not found") || errorMessage.includes("404")) {
+           if (retryCount < maxRetries && window.aistudio) {
+               console.log("Veo entity not found. Prompting for API key selection and retrying...");
+               try {
+                  await window.aistudio.openSelectKey();
+                  retryCount++;
+                  continue; // Retry the loop
+               } catch(e) { 
+                  console.error("Key selection failed", e);
+                  return null;
+               }
+           }
+      }
+      return null;
+    }
+  }
+  return null;
+};

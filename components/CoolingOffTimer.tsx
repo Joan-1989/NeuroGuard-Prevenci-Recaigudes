@@ -7,12 +7,14 @@ interface CoolingOffTimerProps {
 }
 
 const REFLECTION_QUESTIONS = [
-  "¿Estás comprando por necesidad o por ansiedad?",
-  "¿Cómo te sentirás 10 minutos después de pagar?",
-  "¿Esta compra estaba planeada ayer?",
-  "¿Qué pasaría si esperas hasta mañana?",
-  "¿Estás intentando llenar un vacío emocional?",
-  "Respira... Inhala calma, exhala deseo."
+  "Estàs actuant per necessitat o per ansietat?",
+  "Com et sentiràs 10 minuts després de fer-ho?",
+  "Aquesta acció estava planejada ahir?",
+  "Què passaria si esperes fins demà?",
+  "Estàs intentant omplir un buit emocional?",
+  "Respira... Inspira calma, expira desig.",
+  "Això t'acosta o t'allunya dels teus valors?",
+  "Quin consell li donaries al teu millor amic ara mateix?"
 ];
 
 const CoolingOffTimer: React.FC<CoolingOffTimerProps> = ({ 
@@ -67,14 +69,14 @@ const CoolingOffTimer: React.FC<CoolingOffTimerProps> = ({
   const strokeDashoffset = circumference - (progress / 100) * circumference;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-teal-900/60 backdrop-blur-md p-4 animate-fadeIn">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-teal-900/80 backdrop-blur-md p-4 animate-fadeIn">
       <div className="bg-white/95 rounded-3xl shadow-2xl max-w-lg w-full p-8 relative overflow-hidden text-center border border-teal-100">
         
         {/* Soft Background Gradient */}
         <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-teal-50 via-blue-50 to-emerald-50 opacity-60 -z-10" />
 
-        <h2 className="text-3xl font-serif text-teal-800 mb-2 font-medium">Pausa de Reflexión</h2>
-        <p className="text-teal-600 mb-8">El impulso pasará. Date un momento.</p>
+        <h2 className="text-3xl font-serif text-teal-800 mb-2 font-medium">Pausa de Reflexió</h2>
+        <p className="text-teal-600 mb-8">L'impuls passarà. Dóna't un moment.</p>
 
         {/* Breathing Circle / Timer Container */}
         <div className="relative w-64 h-64 mx-auto mb-10 flex items-center justify-center">
@@ -120,7 +122,7 @@ const CoolingOffTimer: React.FC<CoolingOffTimerProps> = ({
               {formatTime(timeLeft)}
             </span>
             <span className="text-xs text-teal-500 uppercase tracking-widest mt-2">
-              Cooling Off
+              Refredant
             </span>
           </div>
         </div>
@@ -145,7 +147,7 @@ const CoolingOffTimer: React.FC<CoolingOffTimerProps> = ({
                     onClick={onCancel}
                     className="text-slate-400 hover:text-slate-600 underline text-sm transition-colors"
                 >
-                    No necesito comprar ahora, cancelar
+                    No necessito actuar ara, cancel·lar
                 </button>
             )}
         </div>

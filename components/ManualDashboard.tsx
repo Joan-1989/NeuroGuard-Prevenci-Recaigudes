@@ -1,8 +1,9 @@
-
 import React, { useState } from 'react';
 import { RelapseManual, Trigger, TrapThought, SupportPerson, MotivationItem } from '../types';
 import { updateDoc, doc, db, arrayUnion, arrayRemove } from '../services/firebase';
-import { Compass, AlertTriangle, Shield, TrendingUp, Book, Trash2, Plus } from 'lucide-react';
+import { Compass, AlertTriangle, Shield, TrendingUp, Book, Trash2, Plus, LifeBuoy, ChevronDown, ChevronUp } from 'lucide-react';
+import PreventionSection from './PreventionSection';
+import { Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ResponsiveContainer, Legend } from 'recharts';
 
 interface ManualDashboardProps {
   manual: RelapseManual;
@@ -48,25 +49,35 @@ const MotivationsSection = ({ manual, manualRef }: { manual: RelapseManual, manu
 };
 
 const ValuesSection = ({ manual, manualRef }: { manual: RelapseManual, manualRef: any }) => {
+  const [expandedValue, setExpandedValue] = useState<string | null>(null);
+
   const toggleValue = async (val: string) => {
     let current = [...(manual.values?.selected || [])];
+    
     if (current.includes(val)) {
+      // Remove value
       current = current.filter(v => v !== val);
       await updateDoc(manualRef, { 'values.selected': current });
+      if (expandedValue === val) setExpandedValue(null);
     } else {
+      // Add value
       if (current.length >= 7) return alert("Pots seleccionar un màxim de 7 valors.");
       current.push(val);
       
       const updates: any = { 'values.selected': current };
-      // Initialize details if not present with default values
-      if (!manual.values?.details?.[val]) {
+      
+      // Initialize details if not present (Check deeply if exists)
+      const existingDetails = manual.values?.details?.[val];
+      if (!existingDetails) {
         updates[`values.details.${val}`] = {
           definition: 'Aquest valor és important per a mi perquè...',
           importance: 5,
           alignment: 5
         };
       }
+      
       await updateDoc(manualRef, updates);
+      setExpandedValue(val); // Auto-expand new value
     }
   };
 
@@ -74,15 +85,44 @@ const ValuesSection = ({ manual, manualRef }: { manual: RelapseManual, manualRef
     await updateDoc(manualRef, { [`values.details.${val}.${field}`]: value });
   };
 
+  // Prepare data for Radar Chart
+  const chartData = manual.values?.selected?.map(val => ({
+    subject: val,
+    A: manual.values.details?.[val]?.importance || 0,
+    B: manual.values.details?.[val]?.alignment || 0,
+    fullMark: 10,
+  })) || [];
+
   return (
     <div className="space-y-6 animate-fadeIn">
       <h3 className="text-xl font-bold text-slate-800">Els meus Valors (La Brúixola)</h3>
-      <div className="flex flex-wrap gap-2">
+      
+      {/* Visual Chart */}
+      {chartData.length > 2 && (
+        <div className="bg-white p-4 rounded-xl border shadow-sm mb-6 h-64 w-full">
+            <ResponsiveContainer width="100%" height="100%">
+                <RadarChart cx="50%" cy="50%" outerRadius="80%" data={chartData}>
+                <PolarGrid />
+                <PolarAngleAxis dataKey="subject" tick={{ fontSize: 10 }} />
+                <PolarRadiusAxis angle={30} domain={[0, 10]} />
+                <Radar name="Importància" dataKey="A" stroke="#ea580c" fill="#ea580c" fillOpacity={0.3} />
+                <Radar name="Alineació" dataKey="B" stroke="#3b82f6" fill="#3b82f6" fillOpacity={0.3} />
+                <Legend />
+                </RadarChart>
+            </ResponsiveContainer>
+        </div>
+      )}
+
+      <div className="flex flex-wrap gap-2 mb-6">
         {ALL_VALUES.map(v => (
           <button 
             key={v} 
             onClick={() => toggleValue(v)}
-            className={`px-3 py-1 rounded-full text-sm border transition-colors ${manual.values?.selected?.includes(v) ? 'bg-orange-600 text-white border-orange-600' : 'bg-white text-slate-600 hover:bg-slate-50'}`}
+            className={`px-3 py-1.5 rounded-full text-sm border transition-all ${
+              manual.values?.selected?.includes(v) 
+                ? 'bg-orange-600 text-white border-orange-600 font-bold shadow-sm' 
+                : 'bg-white text-slate-600 hover:bg-slate-50'
+            }`}
           >
             {v}
           </button>
@@ -90,27 +130,72 @@ const ValuesSection = ({ manual, manualRef }: { manual: RelapseManual, manualRef
       </div>
       
       <div className="space-y-4">
+        {manual.values?.selected?.length === 0 && (
+            <p className="text-slate-400 text-center italic py-8">Selecciona els valors que guien la teva vida per començar.</p>
+        )}
+        
         {manual.values?.selected?.map(v => {
-          const detail = manual.values.details?.[v] || { definition: 'Aquest valor és important per a mi perquè...', importance: 5, alignment: 5 };
+          const detail = manual.values.details?.[v] || { definition: '', importance: 5, alignment: 5 };
+          const isExpanded = expandedValue === v;
+
           return (
-            <div key={v} className="bg-white p-4 border rounded-xl shadow-sm">
-              <h4 className="font-bold text-orange-700 text-lg mb-2">{v}</h4>
-              <textarea 
-                placeholder="Què significa per a tu?" 
-                className="w-full border p-2 rounded-lg text-sm mb-3"
-                value={detail.definition}
-                onChange={(e) => updateValueDetail(v, 'definition', e.target.value)}
-              />
-              <div className="grid grid-cols-2 gap-4">
-                 <div>
-                   <label className="text-xs font-bold text-slate-500">Importància: {detail.importance}</label>
-                   <input type="range" min="0" max="10" className="w-full accent-orange-500" value={detail.importance} onChange={e => updateValueDetail(v, 'importance', parseInt(e.target.value))} />
-                 </div>
-                 <div>
-                   <label className="text-xs font-bold text-slate-500">Alineació: {detail.alignment}</label>
-                   <input type="range" min="0" max="10" className="w-full accent-orange-500" value={detail.alignment} onChange={e => updateValueDetail(v, 'alignment', parseInt(e.target.value))} />
-                 </div>
+            <div key={v} className={`bg-white border rounded-xl shadow-sm transition-all overflow-hidden ${isExpanded ? 'ring-2 ring-orange-100 shadow-md' : ''}`}>
+              <div 
+                onClick={() => setExpandedValue(isExpanded ? null : v)}
+                className="p-4 flex justify-between items-center cursor-pointer hover:bg-slate-50"
+              >
+                <div className="flex items-center gap-3">
+                    <span className="font-bold text-orange-700 text-lg">{v}</span>
+                    {!isExpanded && (
+                        <div className="flex gap-2 text-xs text-slate-400 animate-fadeIn">
+                            <span title="Importància">Imp: {detail.importance}</span>
+                            <span title="Alineació">Ali: {detail.alignment}</span>
+                        </div>
+                    )}
+                </div>
+                <button className="text-slate-400">
+                    {isExpanded ? <ChevronUp size={20}/> : <ChevronDown size={20}/>}
+                </button>
               </div>
+              
+              {isExpanded && (
+                <div className="p-4 pt-0 border-t border-slate-100 bg-slate-50/30 animate-fadeIn">
+                    <label className="block text-xs font-bold text-slate-500 mb-1 mt-3 uppercase">Definició Personal</label>
+                    <textarea 
+                        placeholder="Què significa per a tu?" 
+                        className="w-full border border-slate-200 p-3 rounded-lg text-sm mb-4 focus:ring-2 focus:ring-orange-200 outline-none shadow-inner bg-white/80"
+                        rows={3}
+                        value={detail.definition}
+                        onChange={(e) => updateValueDetail(v, 'definition', e.target.value)}
+                    />
+                    <div className="grid grid-cols-2 gap-6 bg-white p-4 rounded-lg border border-slate-200 shadow-inner">
+                        <div>
+                            <div className="flex justify-between mb-1">
+                                <label className="text-xs font-bold text-slate-500">Importància</label>
+                                <span className="text-xs font-bold text-orange-600">{detail.importance}/10</span>
+                            </div>
+                            <input 
+                                type="range" min="0" max="10" 
+                                className="w-full accent-orange-500 h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer" 
+                                value={detail.importance} 
+                                onChange={e => updateValueDetail(v, 'importance', parseInt(e.target.value))} 
+                            />
+                        </div>
+                        <div>
+                            <div className="flex justify-between mb-1">
+                                <label className="text-xs font-bold text-slate-500">Alineació Actual</label>
+                                <span className="text-xs font-bold text-orange-600">{detail.alignment}/10</span>
+                            </div>
+                            <input 
+                                type="range" min="0" max="10" 
+                                className="w-full accent-orange-500 h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer" 
+                                value={detail.alignment} 
+                                onChange={e => updateValueDetail(v, 'alignment', parseInt(e.target.value))} 
+                            />
+                        </div>
+                    </div>
+                </div>
+              )}
             </div>
           );
         })}
@@ -145,7 +230,7 @@ const PatternsSection = ({ manual, manualRef }: { manual: RelapseManual, manualR
       <div>
         <h3 className="text-xl font-bold text-slate-800 mb-4 flex items-center gap-2"><AlertTriangle className="text-red-500"/> Senyals d'Alerta</h3>
         <div className="flex gap-2 mb-4">
-           <select value={triggerType} onChange={e => setTriggerType(e.target.value)} className="border p-3 rounded-xl bg-white">
+           <select value={triggerType} onChange={e => setTriggerType(e.target.value)} className="border p-3 rounded-xl bg-white text-sm">
               <option value="external">Extern</option>
               <option value="internal">Intern</option>
               <option value="physical">Físic</option>
@@ -155,12 +240,14 @@ const PatternsSection = ({ manual, manualRef }: { manual: RelapseManual, manualR
         </div>
         <div className="grid gap-2">
           {manual.triggers?.map(t => (
-            <div key={t.id} className="p-3 bg-red-50 border border-red-100 rounded-xl text-sm flex justify-between">
+            <div key={t.id} className="p-3 bg-red-50 border border-red-100 rounded-xl text-sm flex justify-between items-center shadow-sm">
               <span>
-                <strong className="text-red-800 uppercase text-xs mr-2">{t.external ? 'EXT' : t.internal ? 'INT' : 'FIS'}</strong> 
+                <span className={`text-[10px] font-bold px-2 py-0.5 rounded mr-2 ${t.external ? 'bg-blue-100 text-blue-700' : t.internal ? 'bg-purple-100 text-purple-700' : 'bg-orange-100 text-orange-700'}`}>
+                    {t.external ? 'EXTERN' : t.internal ? 'INTERN' : 'FÍSIC'}
+                </span>
                 {t.external || t.internal || t.physical}
               </span>
-              <button onClick={() => updateDoc(manualRef, { triggers: arrayRemove(t) })} className="text-red-300 hover:text-red-600">×</button>
+              <button onClick={() => updateDoc(manualRef, { triggers: arrayRemove(t) })} className="text-red-300 hover:text-red-600 bg-white rounded-full p-1"><Trash2 size={14}/></button>
             </div>
           ))}
         </div>
@@ -175,14 +262,14 @@ const PatternsSection = ({ manual, manualRef }: { manual: RelapseManual, manualR
         </div>
         <div className="space-y-4">
            {manual.trapThoughts?.map(t => (
-             <div key={t.id} className="p-4 bg-amber-50 border border-amber-100 rounded-xl">
+             <div key={t.id} className="p-4 bg-amber-50 border border-amber-100 rounded-xl shadow-sm">
                 <div className="flex justify-between mb-2">
                   <p className="font-bold text-amber-900 italic">"{t.thought}"</p>
-                  <button onClick={() => updateDoc(manualRef, { trapThoughts: arrayRemove(t) })} className="text-amber-400 hover:text-amber-700">×</button>
+                  <button onClick={() => updateDoc(manualRef, { trapThoughts: arrayRemove(t) })} className="text-amber-400 hover:text-amber-700"><Trash2 size={16}/></button>
                 </div>
                 <textarea 
                   placeholder="Resposta racional/alternativa..." 
-                  className="w-full p-2 rounded border border-amber-200 text-sm"
+                  className="w-full p-2 rounded border border-amber-200 text-sm focus:ring-2 focus:ring-amber-200 outline-none"
                   value={t.reframe}
                   onChange={(e) => updateTrapReframe(t, e.target.value)}
                 />
@@ -216,15 +303,18 @@ const SupportSection = ({ manual, manualRef }: { manual: RelapseManual, manualRe
             <input value={contact} onChange={e => setContact(e.target.value)} placeholder="Contacte" className="border p-2 rounded-lg" />
             <input value={role} onChange={e => setRole(e.target.value)} placeholder="Rol (ex: escolta)" className="border p-2 rounded-lg" />
          </div>
-         <button onClick={addSupport} className="w-full bg-green-600 text-white py-2 rounded-lg font-bold mb-4">Afegir Persona</button>
+         <button onClick={addSupport} className="w-full bg-green-600 text-white py-2 rounded-lg font-bold mb-4 shadow-md hover:bg-green-700 transition-colors">Afegir Persona</button>
          
          <div className="grid md:grid-cols-2 gap-4">
            {manual.supportNetwork?.map(p => (
-             <div key={p.id} className="p-4 border border-green-200 bg-green-50 rounded-xl relative">
-                <h4 className="font-bold text-green-800">{p.name}</h4>
-                <p className="text-sm text-green-700">{p.contact}</p>
-                <span className="text-xs bg-white px-2 py-1 rounded border border-green-100 mt-2 inline-block text-green-600">{p.role}</span>
-                <button onClick={() => updateDoc(manualRef, { supportNetwork: arrayRemove(p) })} className="absolute top-2 right-2 text-green-300 hover:text-green-700">×</button>
+             <div key={p.id} className="p-4 border border-green-200 bg-green-50 rounded-xl relative shadow-sm">
+                <div className="flex items-center gap-2 mb-1">
+                    <div className="w-8 h-8 bg-green-200 rounded-full flex items-center justify-center text-green-700 font-bold text-xs">{p.name.charAt(0)}</div>
+                    <h4 className="font-bold text-green-900">{p.name}</h4>
+                </div>
+                <p className="text-sm text-green-700 mb-2 pl-10">{p.contact}</p>
+                <span className="text-xs bg-white px-2 py-1 rounded border border-green-100 ml-10 inline-block text-green-600 font-medium">{p.role}</span>
+                <button onClick={() => updateDoc(manualRef, { supportNetwork: arrayRemove(p) })} className="absolute top-2 right-2 text-green-400 hover:text-green-700"><Trash2 size={16}/></button>
              </div>
            ))}
          </div>
@@ -240,11 +330,14 @@ const ManualDashboard: React.FC<ManualDashboardProps> = ({ manual, manualId, use
   return (
     <div className="bg-white rounded-3xl shadow-sm border border-gray-200 overflow-hidden min-h-[600px] flex flex-col md:flex-row">
        {/* Sidebar Navigation */}
-       <div className="md:w-64 bg-slate-50 border-r border-slate-100 flex flex-row md:flex-col overflow-x-auto md:overflow-visible">
-          <button onClick={() => setActiveSection('motivations')} className={`p-4 text-left font-bold text-sm ${activeSection === 'motivations' ? 'bg-white text-orange-600 border-l-4 border-orange-600' : 'text-slate-500'}`}>1. PUNT DE PARTIDA</button>
-          <button onClick={() => setActiveSection('values')} className={`p-4 text-left font-bold text-sm ${activeSection === 'values' ? 'bg-white text-orange-600 border-l-4 border-orange-600' : 'text-slate-500'}`}>2. VALORS</button>
-          <button onClick={() => setActiveSection('patterns')} className={`p-4 text-left font-bold text-sm ${activeSection === 'patterns' ? 'bg-white text-orange-600 border-l-4 border-orange-600' : 'text-slate-500'}`}>3. PATRONS</button>
-          <button onClick={() => setActiveSection('support')} className={`p-4 text-left font-bold text-sm ${activeSection === 'support' ? 'bg-white text-orange-600 border-l-4 border-orange-600' : 'text-slate-500'}`}>4. SUPORT</button>
+       <div className="md:w-64 bg-slate-50 border-r border-slate-100 flex flex-row md:flex-col overflow-x-auto md:overflow-visible flex-shrink-0">
+          <button onClick={() => setActiveSection('motivations')} className={`p-4 text-left font-bold text-sm transition-colors ${activeSection === 'motivations' ? 'bg-white text-orange-600 border-l-4 border-orange-600 shadow-sm' : 'text-slate-500 hover:bg-slate-100'}`}>1. PUNT DE PARTIDA</button>
+          <button onClick={() => setActiveSection('values')} className={`p-4 text-left font-bold text-sm transition-colors ${activeSection === 'values' ? 'bg-white text-orange-600 border-l-4 border-orange-600 shadow-sm' : 'text-slate-500 hover:bg-slate-100'}`}>2. VALORS</button>
+          <button onClick={() => setActiveSection('patterns')} className={`p-4 text-left font-bold text-sm transition-colors ${activeSection === 'patterns' ? 'bg-white text-orange-600 border-l-4 border-orange-600 shadow-sm' : 'text-slate-500 hover:bg-slate-100'}`}>3. PATRONS</button>
+          <button onClick={() => setActiveSection('support')} className={`p-4 text-left font-bold text-sm transition-colors ${activeSection === 'support' ? 'bg-white text-orange-600 border-l-4 border-orange-600 shadow-sm' : 'text-slate-500 hover:bg-slate-100'}`}>4. SUPORT</button>
+          <button onClick={() => setActiveSection('prevention')} className={`p-4 text-left font-bold text-sm transition-colors ${activeSection === 'prevention' ? 'bg-white text-orange-600 border-l-4 border-orange-600 shadow-sm' : 'text-slate-500 hover:bg-slate-100'} flex items-center gap-2`}>
+            <LifeBuoy size={16}/> 5. EINES PREVENCIÓ
+          </button>
        </div>
 
        {/* Content Area */}
@@ -253,6 +346,7 @@ const ManualDashboard: React.FC<ManualDashboardProps> = ({ manual, manualId, use
           {activeSection === 'values' && <ValuesSection manual={manual} manualRef={manualRef} />}
           {activeSection === 'patterns' && <PatternsSection manual={manual} manualRef={manualRef} />}
           {activeSection === 'support' && <SupportSection manual={manual} manualRef={manualRef} />}
+          {activeSection === 'prevention' && <PreventionSection />}
        </div>
     </div>
   );
