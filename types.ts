@@ -87,6 +87,7 @@ export interface DiaryEntry {
   id: string;
   text: string;
   createdAt: any;
+  linkedActivity?: { date: string; area: string; };
 }
 
 // --- GAMIFICATION / EXTRAS (NeuroGuard Legacy) ---
