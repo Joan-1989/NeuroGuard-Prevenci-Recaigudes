@@ -52,11 +52,22 @@ const ValuesSection = ({ manual, manualRef }: { manual: RelapseManual, manualRef
     let current = [...(manual.values?.selected || [])];
     if (current.includes(val)) {
       current = current.filter(v => v !== val);
+      await updateDoc(manualRef, { 'values.selected': current });
     } else {
-      if (current.length >= 7) return alert("Màxim 7 valors.");
+      if (current.length >= 7) return alert("Pots seleccionar un màxim de 7 valors.");
       current.push(val);
+      
+      const updates: any = { 'values.selected': current };
+      // Initialize details if not present with default values
+      if (!manual.values?.details?.[val]) {
+        updates[`values.details.${val}`] = {
+          definition: 'Aquest valor és important per a mi perquè...',
+          importance: 5,
+          alignment: 5
+        };
+      }
+      await updateDoc(manualRef, updates);
     }
-    await updateDoc(manualRef, { 'values.selected': current });
   };
 
   const updateValueDetail = async (val: string, field: string, value: any) => {
@@ -80,7 +91,7 @@ const ValuesSection = ({ manual, manualRef }: { manual: RelapseManual, manualRef
       
       <div className="space-y-4">
         {manual.values?.selected?.map(v => {
-          const detail = manual.values.details?.[v] || { definition: '', importance: 5, alignment: 5 };
+          const detail = manual.values.details?.[v] || { definition: 'Aquest valor és important per a mi perquè...', importance: 5, alignment: 5 };
           return (
             <div key={v} className="bg-white p-4 border rounded-xl shadow-sm">
               <h4 className="font-bold text-orange-700 text-lg mb-2">{v}</h4>

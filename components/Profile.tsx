@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { UserProfile, RelapseManual } from '../types';
 import { updateDoc, doc, db, archiveManual, collection, query, orderBy, getDocs, deleteDoc, messaging, getToken } from '../services/firebase';
-import { User, Download, Archive, Trash2, Calendar, Bell } from 'lucide-react';
+import { User, Download, Archive, Trash2, Calendar, Bell, Eye, Printer } from 'lucide-react';
 
 interface ProfileProps {
   user: UserProfile;
@@ -93,6 +93,99 @@ const Profile: React.FC<ProfileProps> = ({ user }) => {
     }
   };
 
+  const handlePreviewManual = (manual: any) => {
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) return alert("Si us plau, permet les finestres emergents per veure el manual.");
+
+    const dateStr = manual.createdAt?.toDate ? manual.createdAt.toDate().toLocaleDateString() : 'Data desconeguda';
+
+    const content = `
+      <html>
+        <head>
+          <title>Manual ACENCAS - ${dateStr}</title>
+          <style>
+            body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 40px; max-width: 800px; margin: 0 auto; color: #333; }
+            h1 { color: #ea580c; border-bottom: 2px solid #ea580c; padding-bottom: 10px; margin-bottom: 20px; }
+            h2 { color: #1e293b; margin-top: 30px; background: #f8fafc; padding: 10px; border-radius: 8px; border-left: 4px solid #ea580c; }
+            h3 { color: #475569; margin-top: 20px; font-size: 1.1em; }
+            p, li { line-height: 1.6; }
+            ul { padding-left: 20px; }
+            .meta { color: #64748b; font-size: 0.9em; margin-bottom: 30px; border-bottom: 1px solid #eee; padding-bottom: 20px; }
+            .card { border: 1px solid #cbd5e1; padding: 15px; border-radius: 8px; margin-bottom: 10px; background: #fff; page-break-inside: avoid; }
+            .tag { display: inline-block; background: #e2e8f0; padding: 2px 8px; border-radius: 4px; font-size: 0.8em; color: #475569; margin-left: 8px; }
+            .crisis-card { background-color: #fef2f2; border: 1px solid #fca5a5; padding: 20px; border-radius: 8px; }
+            .crisis-label { font-weight: bold; color: #991b1b; display: block; margin-top: 10px; }
+            @media print {
+              body { padding: 0; }
+              h2 { background: none; border-bottom: 1px solid #ccc; border-left: none; padding-left: 0; }
+              .no-print { display: none; }
+            }
+          </style>
+        </head>
+        <body>
+          <h1>Manual de Prevenció ACENCAS</h1>
+          <div class="meta">
+            <p><strong>Usuari:</strong> ${formData.name} ${formData.surname}</p>
+            <p><strong>Data del manual:</strong> ${dateStr}</p>
+            <p><strong>ID:</strong> ${manual.id}</p>
+          </div>
+
+          <h2>1. Motivacions (Punt de Partida)</h2>
+          <ul>
+            ${(manual.motivations || []).map((m: any) => `<li>${m.text}</li>`).join('') || '<li>Sense motivacions registrades.</li>'}
+          </ul>
+
+          <h2>2. Els Meus Valors</h2>
+          <div>
+            ${(manual.values?.selected || []).map((v: string) => {
+              const details = manual.values?.details?.[v] || {};
+              return `<div class="card">
+                <h3>${v}</h3>
+                <p><em>"${details.definition || 'Sense definició'}"</em></p>
+                <p><strong>Importància:</strong> ${details.importance || 5}/10 &nbsp;|&nbsp; <strong>Alineació:</strong> ${details.alignment || 5}/10</p>
+              </div>`;
+            }).join('') || '<p>No s\'han seleccionat valors.</p>'}
+          </div>
+
+          <h2>3. Patrons i Senyals d'Alerta</h2>
+          <h3>Senyals d'Alerta</h3>
+          <ul>
+             ${(manual.triggers || []).map((t: any) => `<li>${t.external || t.internal || t.physical} <span class="tag">${t.external ? 'EXT' : t.internal ? 'INT' : 'FIS'}</span></li>`).join('') || '<li>Cap senyal registrat.</li>'}
+          </ul>
+          <h3>Pensaments Trampa</h3>
+          <ul>
+             ${(manual.trapThoughts || []).map((t: any) => `<li><strong>"${t.thought}"</strong><br/><span style="color:#059669">➔ Resposta: ${t.reframe || '(Pendent)'}</span></li>`).join('') || '<li>Cap pensament registrat.</li>'}
+          </ul>
+
+          <h2>4. Xarxa de Suport</h2>
+          <ul>
+             ${(manual.supportNetwork || []).map((s: any) => `<li><strong>${s.name}</strong> <span class="tag">${s.role}</span><br/>Contacte: ${s.contact}</li>`).join('') || '<li>Sense xarxa definida.</li>'}
+          </ul>
+
+          <h2>5. Pla de Crisi</h2>
+          <div class="crisis-card">
+            <span class="crisis-label">SI NOTO (Senyal):</span> ${manual.crisisPlan?.signal || '-'}
+            <span class="crisis-label">FARÉ (Acció):</span> ${manual.crisisPlan?.action || '-'}
+            <span class="crisis-label">TRUCARÉ A (Contacte):</span> ${manual.crisisPlan?.contact || '-'}
+            <span class="crisis-label">RECORDATORI (Valor):</span> ${manual.crisisPlan?.reminder || '-'}
+          </div>
+
+          <h2>6. Revisió Setmanal</h2>
+          <div class="card">
+            <p style="white-space: pre-wrap;">${manual.weeklyReview || 'Sense revisió registrada.'}</p>
+          </div>
+
+          <div style="margin-top: 50px; text-align: center; font-size: 0.8em; color: #94a3b8;" class="no-print">
+            <button onclick="window.print()" style="padding: 10px 20px; background: #ea580c; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;">Imprimir / Guardar PDF</button>
+          </div>
+        </body>
+      </html>
+    `;
+
+    printWindow.document.write(content);
+    printWindow.document.close();
+  };
+
   return (
     <div className="space-y-6 animate-fadeIn">
       {/* Header */}
@@ -170,9 +263,21 @@ const Profile: React.FC<ProfileProps> = ({ user }) => {
                     {m.id === user.activeManualId && <span className="text-xs text-green-600 font-bold">ACTIU</span>}
                   </div>
                   <div className="flex gap-2">
-                    <button onClick={() => window.print()} className="p-2 text-slate-400 hover:text-blue-600"><Download className="w-4 h-4"/></button>
+                    <button 
+                      onClick={() => handlePreviewManual(m)} 
+                      className="p-2 text-slate-400 hover:text-blue-600"
+                      title="Veure i descarregar contingut"
+                    >
+                      <Eye className="w-4 h-4"/>
+                    </button>
                     {m.id !== user.activeManualId && (
-                      <button onClick={() => handleDeleteManual(m.id)} className="p-2 text-slate-400 hover:text-red-600"><Trash2 className="w-4 h-4"/></button>
+                      <button 
+                        onClick={() => handleDeleteManual(m.id)} 
+                        className="p-2 text-slate-400 hover:text-red-600"
+                        title="Esborrar manual"
+                      >
+                        <Trash2 className="w-4 h-4"/>
+                      </button>
                     )}
                   </div>
                 </div>

@@ -9,14 +9,15 @@ import Theory from './components/Theory';
 import Profile from './components/Profile';
 import RoleplayGame from './components/RoleplayGame'; // Bonus feature retained
 import SosButton from './components/SosButton';
-import { BookOpen, Shield, PenTool, User as UserIcon, LogOut, Menu, X, BrainCircuit } from 'lucide-react';
+import Planner from './components/Planner';
+import { BookOpen, Shield, PenTool, User as UserIcon, LogOut, Menu, X, BrainCircuit, Calendar } from 'lucide-react';
 import { collection, addDoc, query, orderBy, serverTimestamp } from './services/firebase';
 
 export default function App() {
   const [user, setUser] = useState<any>(null);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [activeManual, setActiveManual] = useState<RelapseManual | null>(null);
-  const [view, setView] = useState<'manual' | 'theory' | 'diary' | 'profile' | 'crisis' | 'roleplay'>('manual');
+  const [view, setView] = useState<'manual' | 'theory' | 'diary' | 'profile' | 'crisis' | 'roleplay' | 'planner'>('manual');
   const [loading, setLoading] = useState(true);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -126,6 +127,7 @@ export default function App() {
         <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
           <p className="px-4 text-xs font-bold text-slate-400 uppercase mt-4 mb-2">Principal</p>
           <NavItem id="manual" label="El Meu Manual" icon={BookOpen} />
+          <NavItem id="planner" label="Planificació" icon={Calendar} />
           <NavItem id="crisis" label="Pla de Crisi" icon={Shield} />
           <NavItem id="diary" label="Diari Personal" icon={PenTool} />
           
@@ -160,6 +162,7 @@ export default function App() {
         <div className="md:hidden fixed inset-0 bg-white z-10 pt-20 px-4 pb-4 overflow-y-auto">
            <nav className="space-y-2">
              <NavItem id="manual" label="El Meu Manual" icon={BookOpen} />
+             <NavItem id="planner" label="Planificació" icon={Calendar} />
              <NavItem id="crisis" label="Pla de Crisi" icon={Shield} />
              <NavItem id="diary" label="Diari Personal" icon={PenTool} />
              <NavItem id="theory" label="Marc Teòric" icon={BrainCircuit} />
@@ -178,6 +181,10 @@ export default function App() {
         
         {view === 'manual' && activeManual && userProfile && (
            <ManualDashboard manual={activeManual} manualId={userProfile.activeManualId} userId={user.uid} />
+        )}
+
+        {view === 'planner' && activeManual && userProfile && (
+           <Planner manual={activeManual} manualId={userProfile.activeManualId} userId={user.uid} />
         )}
 
         {view === 'crisis' && activeManual && userProfile && (
