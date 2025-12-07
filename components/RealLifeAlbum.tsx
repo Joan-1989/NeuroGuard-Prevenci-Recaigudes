@@ -1,4 +1,3 @@
-
 import React, { useState, useRef } from 'react';
 import { Memory } from '../types';
 import { Camera, Image as ImageIcon, Sparkles, Loader, X, Lock } from 'lucide-react';
@@ -61,7 +60,7 @@ const RealLifeAlbum: React.FC<RealLifeAlbumProps> = ({ memories, onAddMemory, ca
       <div className="flex justify-between items-center mb-6">
         <div>
             <h3 className="text-2xl font-bold text-slate-800 font-sans flex items-center gap-2">
-            <Camera className="w-8 h-8 text-teal-600"/> Àlbum de Vida Real
+            <Camera className="w-8 h-8 text-indigo-600"/> Àlbum de Vida Real
             </h3>
             <p className="text-slate-500 text-sm mt-1">Col·lecciona moments offline. Guanya vitalitat.</p>
         </div>
@@ -69,7 +68,7 @@ const RealLifeAlbum: React.FC<RealLifeAlbumProps> = ({ memories, onAddMemory, ca
         {canAdd && !isAdding && (
           <button 
             onClick={() => setIsAdding(true)}
-            className="bg-[#00897B] text-white px-6 py-3 rounded-xl font-bold text-sm shadow-md hover:bg-[#00796B] transition-all transform active:scale-95 flex items-center gap-2"
+            className="bg-indigo-600 text-white px-6 py-3 rounded-xl font-bold text-sm shadow-md hover:bg-indigo-700 transition-all transform active:scale-95 flex items-center gap-2"
           >
             <Sparkles className="w-4 h-4"/> + Nova Memòria
           </button>
@@ -91,8 +90,8 @@ const RealLifeAlbum: React.FC<RealLifeAlbumProps> = ({ memories, onAddMemory, ca
         <form onSubmit={handleSubmit} className="mb-6 bg-slate-50 p-6 rounded-2xl border border-slate-200 animate-fadeIn relative">
           {isGenerating && (
             <div className="absolute inset-0 bg-white/80 backdrop-blur-sm z-10 flex flex-col items-center justify-center rounded-2xl">
-              <Loader className="w-10 h-10 text-teal-600 animate-spin mb-3"/>
-              <p className="text-teal-800 font-bold text-lg">La IA està pintant el teu record...</p>
+              <Loader className="w-10 h-10 text-indigo-600 animate-spin mb-3"/>
+              <p className="text-indigo-800 font-bold text-lg">La IA està pintant el teu record...</p>
             </div>
           )}
           
@@ -100,7 +99,7 @@ const RealLifeAlbum: React.FC<RealLifeAlbumProps> = ({ memories, onAddMemory, ca
           <textarea
             value={newNote}
             onChange={(e) => setNewNote(e.target.value)}
-            className="w-full p-4 rounded-xl border border-gray-300 focus:border-[#00897B] focus:ring-2 focus:ring-[#00897B] outline-none min-h-[120px] text-lg mb-4 bg-white placeholder:text-slate-400"
+            className="w-full p-4 rounded-xl border border-gray-300 focus:border-indigo-600 focus:ring-2 focus:ring-indigo-600 outline-none min-h-[120px] text-lg mb-4 bg-white placeholder:text-slate-400"
             placeholder="Un passeig pel bosc, un cafè amb un amic, llegir un llibre..."
           />
           
@@ -127,7 +126,7 @@ const RealLifeAlbum: React.FC<RealLifeAlbumProps> = ({ memories, onAddMemory, ca
               <button 
                 type="button" 
                 onClick={() => fileInputRef.current?.click()}
-                className="w-full py-8 border-2 border-dashed border-gray-300 rounded-xl text-gray-500 hover:border-teal-500 hover:text-teal-600 hover:bg-teal-50 transition-all flex flex-col items-center justify-center gap-2 group"
+                className="w-full py-8 border-2 border-dashed border-gray-300 rounded-xl text-gray-500 hover:border-indigo-500 hover:text-indigo-600 hover:bg-indigo-50 transition-all flex flex-col items-center justify-center gap-2 group"
               >
                 <div className="p-3 bg-white rounded-full shadow-sm group-hover:scale-110 transition-transform">
                     <ImageIcon className="w-6 h-6" />
@@ -139,7 +138,7 @@ const RealLifeAlbum: React.FC<RealLifeAlbumProps> = ({ memories, onAddMemory, ca
           </div>
 
           <div className="flex gap-4">
-            <button type="submit" className="flex-1 bg-[#00897B] text-white py-3 rounded-xl font-bold hover:bg-[#00796B] transition-colors shadow-lg shadow-teal-100 transform active:scale-95">Guardar Record</button>
+            <button type="submit" className="flex-1 bg-indigo-600 text-white py-3 rounded-xl font-bold hover:bg-indigo-700 transition-colors shadow-lg shadow-indigo-100 transform active:scale-95">Guardar Record</button>
             <button type="button" onClick={() => setIsAdding(false)} className="px-6 bg-white text-slate-700 border border-slate-200 py-3 rounded-xl font-bold hover:bg-slate-50 transition-colors">Cancel·lar</button>
           </div>
         </form>

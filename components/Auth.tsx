@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { signInWithEmailAndPassword, createUserWithEmailAndPassword, createInitialUser } from '../services/firebase';
 import { auth } from '../services/firebase';
@@ -39,14 +38,14 @@ const Auth: React.FC = () => {
     <div className="min-h-screen flex items-center justify-center bg-slate-50 p-4">
       <div className="max-w-md w-full bg-white rounded-2xl shadow-xl p-8 border border-gray-100">
         <div className="text-center mb-8">
-          <div className="w-16 h-16 bg-orange-500 rounded-xl mx-auto flex items-center justify-center text-white text-3xl font-bold mb-4 shadow-lg shadow-orange-200">
+          <div className="w-16 h-16 bg-indigo-600 rounded-xl mx-auto flex items-center justify-center text-white text-3xl font-bold mb-4 shadow-lg shadow-indigo-200">
             N
           </div>
           <h1 className="text-3xl font-bold text-gray-900 font-sans">
             {isLogin ? 'Benvingut/da' : 'Crea el teu compte'}
           </h1>
           <p className="text-slate-500 mt-2">
-            NeuroGuard | ACENCAS Prevenció Activa
+            NeuroGuard | Comunitat Terapèutica Digital
           </p>
         </div>
 
@@ -58,7 +57,7 @@ const Auth: React.FC = () => {
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none transition-all"
+              className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all"
               placeholder="nom@exemple.com"
             />
           </div>
@@ -69,7 +68,7 @@ const Auth: React.FC = () => {
               required
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none transition-all"
+              className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all"
               placeholder="••••••••"
             />
           </div>
@@ -83,7 +82,7 @@ const Auth: React.FC = () => {
           <button 
             type="submit" 
             disabled={loading}
-            className="w-full bg-orange-600 hover:bg-orange-700 text-white font-bold py-3 rounded-xl shadow-lg shadow-orange-200 transition-all transform active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 rounded-xl shadow-lg shadow-indigo-200 transition-all transform active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {loading ? 'Processant...' : (isLogin ? 'Iniciar Sessió' : "Registra't")}
           </button>
@@ -92,7 +91,7 @@ const Auth: React.FC = () => {
         <div className="mt-6 text-center">
           <button 
             onClick={() => setIsLogin(!isLogin)}
-            className="text-orange-600 hover:text-orange-800 text-sm font-semibold"
+            className="text-indigo-600 hover:text-indigo-800 text-sm font-semibold"
           >
             {isLogin ? "No tens compte? Registra't" : "Ja tens compte? Inicia sessió"}
           </button>

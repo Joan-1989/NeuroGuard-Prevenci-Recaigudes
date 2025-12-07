@@ -113,7 +113,7 @@ const Planner: React.FC<PlannerProps> = ({ manual, manualId, userId, onNavigateT
       <div className="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-6 bg-white p-6 rounded-3xl shadow-sm border border-slate-200">
         <div>
           <h2 className="text-3xl font-bold text-slate-800 flex items-center gap-3">
-            <Calendar className="w-8 h-8 text-orange-500" /> 
+            <Calendar className="w-8 h-8 text-indigo-600" /> 
             Planificador
           </h2>
           <p className="text-slate-500 mt-1 text-sm md:text-base">
@@ -126,13 +126,13 @@ const Planner: React.FC<PlannerProps> = ({ manual, manualId, userId, onNavigateT
           <div className="flex bg-slate-100 p-1 rounded-xl self-start md:self-auto">
             <button 
               onClick={() => setViewMode('day')}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-bold transition-all ${viewMode === 'day' ? 'bg-white text-orange-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-bold transition-all ${viewMode === 'day' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
             >
               <Maximize className="w-4 h-4" /> Dia
             </button>
             <button 
               onClick={() => setViewMode('week')}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-bold transition-all ${viewMode === 'week' ? 'bg-white text-orange-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-bold transition-all ${viewMode === 'week' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
             >
               <Layout className="w-4 h-4" /> Setmana
             </button>
@@ -157,7 +157,7 @@ const Planner: React.FC<PlannerProps> = ({ manual, manualId, userId, onNavigateT
           <button 
             onClick={saveChanges}
             disabled={isSaving}
-            className="flex items-center gap-2 bg-orange-600 hover:bg-orange-700 text-white px-6 py-3 rounded-xl font-bold shadow-lg shadow-orange-200 transition-all transform active:scale-95 disabled:opacity-70 ml-auto xl:ml-0"
+            className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-xl font-bold shadow-lg shadow-indigo-200 transition-all transform active:scale-95 disabled:opacity-70 ml-auto xl:ml-0"
           >
             {isSaving ? <RefreshCw className="animate-spin w-5 h-5"/> : <Save className="w-5 h-5"/>}
             {isSaving ? '...' : 'Guardar'}
@@ -202,7 +202,7 @@ const Planner: React.FC<PlannerProps> = ({ manual, manualId, userId, onNavigateT
                         className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
                           linkedEntry 
                             ? 'bg-green-100 text-green-700 hover:bg-green-200' 
-                            : 'bg-white border border-slate-200 text-slate-500 hover:text-orange-600 hover:border-orange-200'
+                            : 'bg-white border border-slate-200 text-slate-500 hover:text-indigo-600 hover:border-indigo-200'
                         }`}
                         title={linkedEntry ? "Veure reflexió" : "Escriure reflexió al diari"}
                       >
@@ -240,8 +240,8 @@ const Planner: React.FC<PlannerProps> = ({ manual, manualId, userId, onNavigateT
                 <tr className="bg-slate-50 border-b border-slate-200">
                   <th className="p-4 text-left font-bold text-slate-400 uppercase text-xs w-32 sticky left-0 bg-slate-50 z-10">Àrea</th>
                   {weekDates.map(d => (
-                    <th key={d.dateStr} className={`p-4 text-center min-w-[160px] ${d.dateStr === currentDateStr ? 'bg-orange-50' : ''}`}>
-                      <div className={`font-bold ${d.dateStr === currentDateStr ? 'text-orange-600' : 'text-slate-700'}`}>{d.dayName}</div>
+                    <th key={d.dateStr} className={`p-4 text-center min-w-[160px] ${d.dateStr === currentDateStr ? 'bg-indigo-50' : ''}`}>
+                      <div className={`font-bold ${d.dateStr === currentDateStr ? 'text-indigo-600' : 'text-slate-700'}`}>{d.dayName}</div>
                       <div className="text-xs text-slate-400 font-normal">{new Date(d.dateObj).getDate()}</div>
                     </th>
                   ))}
@@ -259,12 +259,12 @@ const Planner: React.FC<PlannerProps> = ({ manual, manualId, userId, onNavigateT
                       const key = `${area.id}-${d.dateStr}`;
                       const isSelected = d.dateStr === currentDateStr;
                       return (
-                        <td key={d.dateStr} className={`p-2 border-r border-slate-50 last:border-0 align-top ${isSelected ? 'bg-orange-50/30' : ''}`}>
+                        <td key={d.dateStr} className={`p-2 border-r border-slate-50 last:border-0 align-top ${isSelected ? 'bg-indigo-50/30' : ''}`}>
                           <textarea
                             value={localPlan[key] || ''}
                             onChange={(e) => handleCellChange(d.dateStr, area.id, e.target.value)}
                             placeholder="..."
-                            className={`w-full h-24 p-3 text-sm bg-transparent border-2 border-transparent hover:border-slate-200 focus:bg-white rounded-lg resize-none transition-all outline-none ${isSelected ? 'focus:border-orange-400' : 'focus:border-slate-300'}`}
+                            className={`w-full h-24 p-3 text-sm bg-transparent border-2 border-transparent hover:border-slate-200 focus:bg-white rounded-lg resize-none transition-all outline-none ${isSelected ? 'focus:border-indigo-400' : 'focus:border-slate-300'}`}
                           />
                         </td>
                       );

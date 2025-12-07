@@ -1,12 +1,12 @@
 
 {
-  "name": "ACENCAS Prevenció Activa",
-  "short_name": "ACENCAS",
+  "name": "NeuroGuard: Comunitat Terapèutica",
+  "short_name": "NeuroGuard",
   "start_url": ".",
   "display": "standalone",
   "background_color": "#ffffff",
-  "theme_color": "#f97316",
-  "description": "Eina de prevenció activa d'addiccions.",
+  "theme_color": "#4f46e5",
+  "description": "Eina de prevenció activa d'addiccions i comunitat terapèutica digital.",
   "icons": [
     {
       "src": "logo.ico",

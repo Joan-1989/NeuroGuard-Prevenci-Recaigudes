@@ -171,7 +171,7 @@ export default function App() {
   };
 
 
-  if (loading) return <div className="min-h-screen flex items-center justify-center bg-slate-50 text-orange-600 font-bold animate-pulse">Carregant NeuroGuard...</div>;
+  if (loading) return <div className="min-h-screen flex items-center justify-center bg-slate-50 text-indigo-600 font-bold animate-pulse">Carregant NeuroGuard...</div>;
 
   if (!user) return <Auth />;
 
@@ -179,7 +179,7 @@ export default function App() {
   const NavItem = ({ id, label, icon: Icon, extraClass = "" }: any) => (
     <button 
       onClick={() => { setView(id); setMobileMenuOpen(false); }}
-      className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all font-medium ${view === id ? 'bg-orange-100 text-orange-700 font-bold shadow-sm' : 'text-slate-600 hover:bg-slate-100'} ${extraClass}`}
+      className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all font-medium ${view === id ? 'bg-indigo-100 text-indigo-700 font-bold shadow-sm' : 'text-slate-600 hover:bg-slate-100'} ${extraClass}`}
     >
       <Icon size={20} /> {label}
     </button>
@@ -190,12 +190,12 @@ export default function App() {
       
       {/* Sidebar (Desktop) */}
       <aside className="hidden md:flex w-72 bg-white border-r border-slate-200 flex-col fixed h-full z-20 shadow-lg">
-        <div className="p-6 border-b border-slate-100 bg-gradient-to-br from-white to-orange-50">
+        <div className="p-6 border-b border-slate-100 bg-gradient-to-br from-white to-indigo-50">
           <div className="flex items-center gap-3">
-             <div className="w-10 h-10 bg-orange-600 rounded-lg flex items-center justify-center text-white font-bold text-xl shadow-lg shadow-orange-200">N</div>
+             <div className="w-10 h-10 bg-indigo-600 rounded-lg flex items-center justify-center text-white font-bold text-xl shadow-lg shadow-indigo-200">N</div>
              <div>
                <h1 className="font-bold text-slate-800 text-lg">NeuroGuard</h1>
-               <p className="text-[10px] text-slate-500 uppercase tracking-widest font-bold">Prevenció Activa</p>
+               <p className="text-[10px] text-slate-500 uppercase tracking-widest font-bold">Comunitat Terapèutica Digital</p>
              </div>
           </div>
         </div>
@@ -241,7 +241,7 @@ export default function App() {
       {/* Mobile Header */}
       <div className="md:hidden fixed top-0 w-full bg-white/90 backdrop-blur-md border-b border-slate-200 z-30 px-4 py-3 flex justify-between items-center shadow-sm">
          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-orange-600 rounded-lg flex items-center justify-center text-white font-bold shadow-sm">N</div>
+            <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center text-white font-bold shadow-sm">N</div>
             <span className="font-bold text-slate-800">NeuroGuard</span>
          </div>
          <div className="flex gap-3">

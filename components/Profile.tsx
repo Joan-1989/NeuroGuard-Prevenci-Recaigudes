@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { UserProfile, RelapseManual } from '../types';
 import { updateDoc, doc, db, archiveManual, collection, query, orderBy, getDocs, deleteDoc, messaging, getToken } from '../services/firebase';
@@ -75,8 +74,8 @@ const Profile: React.FC<ProfileProps> = ({ user }) => {
     try {
         const permission = await Notification.requestPermission();
         if (permission === 'granted') {
-            // Vapid key from original source code
-            const token = await getToken(messaging, { vapidKey: 'BLq1MrJwgRyjPhVR7lgMUUJ4W4y1q4-4BXvwtwPSfd-sGU0RS8P_3ePNTLBK06nrxk1QnOxnW8m2hFjvMwiQz0U' });
+            // CLAU PÚBLICA VAPID CORRECTA PER A NEUROGUARD
+            const token = await getToken(messaging, { vapidKey: 'BLG5QYOXrXg-kH68IlGtvAjbgJ1u2OYi3-meWXgU3fa4Q_TXM7q2kEBZXOJEHJ8tG93jC0-fri57jYziCVnCbl4' });
             if (token) {
                 console.log('FCM Token:', token);
                 await updateDoc(doc(db, "users", user.id), { fcmToken: token });
@@ -102,7 +101,7 @@ const Profile: React.FC<ProfileProps> = ({ user }) => {
     const content = `
       <html>
         <head>
-          <title>Manual ACENCAS - ${dateStr}</title>
+          <title>Manual NeuroGuard - ${dateStr}</title>
           <style>
             body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 40px; max-width: 800px; margin: 0 auto; color: #333; }
             h1 { color: #ea580c; border-bottom: 2px solid #ea580c; padding-bottom: 10px; margin-bottom: 20px; }
@@ -123,7 +122,7 @@ const Profile: React.FC<ProfileProps> = ({ user }) => {
           </style>
         </head>
         <body>
-          <h1>Manual de Prevenció ACENCAS</h1>
+          <h1>Manual de Prevenció NeuroGuard</h1>
           <div class="meta">
             <p><strong>Usuari:</strong> ${formData.name} ${formData.surname}</p>
             <p><strong>Data del manual:</strong> ${dateStr}</p>

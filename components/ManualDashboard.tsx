@@ -34,7 +34,7 @@ const MotivationsSection = ({ manual, manualRef }: { manual: RelapseManual, manu
        <p className="text-slate-500">Per què vull canviar? Quina vida vull viure?</p>
        <div className="flex gap-2">
           <input value={input} onChange={e => setInput(e.target.value)} className="flex-1 border p-3 rounded-xl" placeholder="Escriu una motivació..." />
-          <button onClick={() => { addMotivation(input); setInput(''); }} className="bg-orange-600 text-white px-6 rounded-xl font-bold">Afegir</button>
+          <button onClick={() => { addMotivation(input); setInput(''); }} className="bg-indigo-600 text-white px-6 rounded-xl font-bold">Afegir</button>
        </div>
        <div className="space-y-2">
           {manual.motivations?.map(m => (
@@ -120,7 +120,7 @@ const ValuesSection = ({ manual, manualRef }: { manual: RelapseManual, manualRef
             onClick={() => toggleValue(v)}
             className={`px-3 py-1.5 rounded-full text-sm border transition-all ${
               manual.values?.selected?.includes(v) 
-                ? 'bg-orange-600 text-white border-orange-600 font-bold shadow-sm' 
+                ? 'bg-indigo-600 text-white border-indigo-600 font-bold shadow-sm' 
                 : 'bg-white text-slate-600 hover:bg-slate-50'
             }`}
           >
@@ -139,13 +139,13 @@ const ValuesSection = ({ manual, manualRef }: { manual: RelapseManual, manualRef
           const isExpanded = expandedValue === v;
 
           return (
-            <div key={v} className={`bg-white border rounded-xl shadow-sm transition-all overflow-hidden ${isExpanded ? 'ring-2 ring-orange-100 shadow-md' : ''}`}>
+            <div key={v} className={`bg-white border rounded-xl shadow-sm transition-all overflow-hidden ${isExpanded ? 'ring-2 ring-indigo-100 shadow-md' : ''}`}>
               <div 
                 onClick={() => setExpandedValue(isExpanded ? null : v)}
                 className="p-4 flex justify-between items-center cursor-pointer hover:bg-slate-50"
               >
                 <div className="flex items-center gap-3">
-                    <span className="font-bold text-orange-700 text-lg">{v}</span>
+                    <span className="font-bold text-indigo-700 text-lg">{v}</span>
                     {!isExpanded && (
                         <div className="flex gap-2 text-xs text-slate-400 animate-fadeIn">
                             <span title="Importància">Imp: {detail.importance}</span>
@@ -163,7 +163,7 @@ const ValuesSection = ({ manual, manualRef }: { manual: RelapseManual, manualRef
                     <label className="block text-xs font-bold text-slate-500 mb-1 mt-3 uppercase">Definició Personal</label>
                     <textarea 
                         placeholder="Què significa per a tu?" 
-                        className="w-full border border-slate-200 p-3 rounded-lg text-sm mb-4 focus:ring-2 focus:ring-orange-200 outline-none shadow-inner bg-white/80"
+                        className="w-full border border-slate-200 p-3 rounded-lg text-sm mb-4 focus:ring-2 focus:ring-indigo-200 outline-none shadow-inner bg-white/80"
                         rows={3}
                         value={detail.definition}
                         onChange={(e) => updateValueDetail(v, 'definition', e.target.value)}
@@ -172,11 +172,11 @@ const ValuesSection = ({ manual, manualRef }: { manual: RelapseManual, manualRef
                         <div>
                             <div className="flex justify-between mb-1">
                                 <label className="text-xs font-bold text-slate-500">Importància</label>
-                                <span className="text-xs font-bold text-orange-600">{detail.importance}/10</span>
+                                <span className="text-xs font-bold text-indigo-600">{detail.importance}/10</span>
                             </div>
                             <input 
                                 type="range" min="0" max="10" 
-                                className="w-full accent-orange-500 h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer" 
+                                className="w-full accent-indigo-500 h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer" 
                                 value={detail.importance} 
                                 onChange={e => updateValueDetail(v, 'importance', parseInt(e.target.value))} 
                             />
@@ -184,11 +184,11 @@ const ValuesSection = ({ manual, manualRef }: { manual: RelapseManual, manualRef
                         <div>
                             <div className="flex justify-between mb-1">
                                 <label className="text-xs font-bold text-slate-500">Alineació Actual</label>
-                                <span className="text-xs font-bold text-orange-600">{detail.alignment}/10</span>
+                                <span className="text-xs font-bold text-indigo-600">{detail.alignment}/10</span>
                             </div>
                             <input 
                                 type="range" min="0" max="10" 
-                                className="w-full accent-orange-500 h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer" 
+                                className="w-full accent-indigo-500 h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer" 
                                 value={detail.alignment} 
                                 onChange={e => updateValueDetail(v, 'alignment', parseInt(e.target.value))} 
                             />
@@ -331,11 +331,11 @@ const ManualDashboard: React.FC<ManualDashboardProps> = ({ manual, manualId, use
     <div className="bg-white rounded-3xl shadow-sm border border-gray-200 overflow-hidden min-h-[600px] flex flex-col md:flex-row">
        {/* Sidebar Navigation */}
        <div className="md:w-64 bg-slate-50 border-r border-slate-100 flex flex-row md:flex-col overflow-x-auto md:overflow-visible flex-shrink-0">
-          <button onClick={() => setActiveSection('motivations')} className={`p-4 text-left font-bold text-sm transition-colors ${activeSection === 'motivations' ? 'bg-white text-orange-600 border-l-4 border-orange-600 shadow-sm' : 'text-slate-500 hover:bg-slate-100'}`}>1. PUNT DE PARTIDA</button>
-          <button onClick={() => setActiveSection('values')} className={`p-4 text-left font-bold text-sm transition-colors ${activeSection === 'values' ? 'bg-white text-orange-600 border-l-4 border-orange-600 shadow-sm' : 'text-slate-500 hover:bg-slate-100'}`}>2. VALORS</button>
-          <button onClick={() => setActiveSection('patterns')} className={`p-4 text-left font-bold text-sm transition-colors ${activeSection === 'patterns' ? 'bg-white text-orange-600 border-l-4 border-orange-600 shadow-sm' : 'text-slate-500 hover:bg-slate-100'}`}>3. PATRONS</button>
-          <button onClick={() => setActiveSection('support')} className={`p-4 text-left font-bold text-sm transition-colors ${activeSection === 'support' ? 'bg-white text-orange-600 border-l-4 border-orange-600 shadow-sm' : 'text-slate-500 hover:bg-slate-100'}`}>4. SUPORT</button>
-          <button onClick={() => setActiveSection('prevention')} className={`p-4 text-left font-bold text-sm transition-colors ${activeSection === 'prevention' ? 'bg-white text-orange-600 border-l-4 border-orange-600 shadow-sm' : 'text-slate-500 hover:bg-slate-100'} flex items-center gap-2`}>
+          <button onClick={() => setActiveSection('motivations')} className={`p-4 text-left font-bold text-sm transition-colors ${activeSection === 'motivations' ? 'bg-white text-indigo-600 border-l-4 border-indigo-600 shadow-sm' : 'text-slate-500 hover:bg-slate-100'}`}>1. PUNT DE PARTIDA</button>
+          <button onClick={() => setActiveSection('values')} className={`p-4 text-left font-bold text-sm transition-colors ${activeSection === 'values' ? 'bg-white text-indigo-600 border-l-4 border-indigo-600 shadow-sm' : 'text-slate-500 hover:bg-slate-100'}`}>2. VALORS</button>
+          <button onClick={() => setActiveSection('patterns')} className={`p-4 text-left font-bold text-sm transition-colors ${activeSection === 'patterns' ? 'bg-white text-indigo-600 border-l-4 border-indigo-600 shadow-sm' : 'text-slate-500 hover:bg-slate-100'}`}>3. PATRONS</button>
+          <button onClick={() => setActiveSection('support')} className={`p-4 text-left font-bold text-sm transition-colors ${activeSection === 'support' ? 'bg-white text-indigo-600 border-l-4 border-indigo-600 shadow-sm' : 'text-slate-500 hover:bg-slate-100'}`}>4. SUPORT</button>
+          <button onClick={() => setActiveSection('prevention')} className={`p-4 text-left font-bold text-sm transition-colors ${activeSection === 'prevention' ? 'bg-white text-indigo-600 border-l-4 border-indigo-600 shadow-sm' : 'text-slate-500 hover:bg-slate-100'} flex items-center gap-2`}>
             <LifeBuoy size={16}/> 5. EINES PREVENCIÓ
           </button>
        </div>

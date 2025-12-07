@@ -1,5 +1,4 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   BookOpen, AlertTriangle, GitMerge, Compass, Smartphone, 
   ShoppingBag, Heart, Activity, Shield, BarChart2, Info, Lock, Repeat, ZapOff, CheckCircle,
@@ -13,7 +12,7 @@ import {
 
 // --- DATA FOR CHARTS ---
 const TREATMENT_DATA = [
-  { name: "Joc d'apostes", value: 75, fill: '#f97316' },
+  { name: "Joc d'apostes", value: 75, fill: '#ea580c' },
   { name: 'Xarxes/Pantalles', value: 15, fill: '#3b82f6' },
   { name: 'Altres', value: 10, fill: '#94a3b8' },
 ];
@@ -55,8 +54,8 @@ const ADDICTION_DETAILS: Record<string, any> = {
   gambling: {
     title: "Joc d'Atzar en Línia",
     icon: "🎲",
-    color: "bg-orange-50 border-orange-200 text-orange-800",
-    gradient: "from-orange-500 to-red-500",
+    color: "bg-indigo-50 border-indigo-200 text-indigo-800",
+    gradient: "from-indigo-500 to-blue-500",
     description: "La ludopatia digital elimina les barreres físiques del joc tradicional. El joc esdevé un espai de construcció de 'masculinitat de risc'.",
     mechanisms: [
       { title: "Immediatesa", desc: "La reducció del temps entre l'aposta i el resultat augmenta la capacitat addictiva." },
@@ -163,7 +162,7 @@ const Theory: React.FC = () => {
       onClick={() => { setActiveSection(id); setSelectedDetail(null); }}
       className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all ${
         activeSection === id 
-          ? 'bg-orange-50 text-orange-700 border border-orange-100 shadow-sm translate-x-1' 
+          ? 'bg-indigo-50 text-indigo-700 border border-indigo-100 shadow-sm translate-x-1' 
           : 'text-slate-600 hover:bg-slate-50 hover:translate-x-1'
       }`}
     >
@@ -184,8 +183,8 @@ const Theory: React.FC = () => {
       <div className="lg:w-64 flex-shrink-0">
         <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-4 sticky top-24">
           <div className="mb-6 px-2 border-b border-slate-100 pb-4">
-            <h3 className="font-bold text-slate-800 text-lg flex items-center gap-2"><BookOpen className="w-5 h-5 text-orange-500"/> Centre de Coneixement</h3>
-            <p className="text-xs text-slate-500 mt-1">Recursos i dades d'ACENCAS</p>
+            <h3 className="font-bold text-slate-800 text-lg flex items-center gap-2"><BookOpen className="w-5 h-5 text-indigo-500"/> NeuroGuard Hub</h3>
+            <p className="text-xs text-slate-500 mt-1">Recursos i dades</p>
           </div>
           <nav className="space-y-1">
             <SectionButton id="intro" label="Introducció" icon={Info} />
@@ -271,21 +270,21 @@ const Theory: React.FC = () => {
         {activeSection === 'intro' && !selectedDetail && (
           <div className="space-y-8 animate-fadeIn">
             <div className="bg-white p-10 rounded-3xl shadow-sm border border-slate-200 relative overflow-hidden">
-              <div className="absolute top-0 right-0 w-64 h-64 bg-orange-50 rounded-full -mr-20 -mt-20 blur-3xl opacity-50"></div>
+              <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-50 rounded-full -mr-20 -mt-20 blur-3xl opacity-50"></div>
               <h1 className="text-4xl font-bold text-slate-800 mb-6 relative z-10">
-                Un repte social <span className="text-orange-600">creixent</span>
+                Un repte social <span className="text-indigo-600">creixent</span>
               </h1>
               <p className="text-xl text-slate-600 leading-relaxed mb-8 max-w-3xl relative z-10">
                 Les addiccions socials o comportamentals, especialment les vinculades a les pantalles i al joc, representen un dels reptes més significatius per a la salut pública actual.
               </p>
               <div className="bg-slate-50 p-6 rounded-2xl border border-slate-200 flex items-start gap-5 relative z-10">
                 <div className="bg-white p-3 rounded-xl shadow-sm">
-                    <Info className="w-8 h-8 text-orange-600 flex-shrink-0" />
+                    <Info className="w-8 h-8 text-indigo-600 flex-shrink-0" />
                 </div>
                 <div>
-                  <h4 className="font-bold text-slate-800 text-lg mb-2">Missió d'ACENCAS</h4>
+                  <h4 className="font-bold text-slate-800 text-lg mb-2">Missió de NeuroGuard</h4>
                   <p className="text-slate-600 leading-relaxed">
-                    Prevenir, detectar i investigar aquestes conductes per millorar la qualitat de vida de les persones afectades i les seves famílies. Aquesta eina transforma les dades de l'Observatori en coneixement accionable.
+                    Prevenir, detectar i investigar aquestes conductes per millorar la qualitat de vida de les persones afectades i les seves famílies. Aquesta eina transforma les dades en coneixement accionable.
                   </p>
                 </div>
               </div>
@@ -305,7 +304,7 @@ const Theory: React.FC = () => {
                     <button 
                     key={tab}
                     onClick={() => setObservatoryTab(tab as any)}
-                    className={`px-4 py-2 rounded-lg text-sm font-bold transition-all capitalize ${observatoryTab === tab ? 'bg-white shadow-sm text-orange-600' : 'text-slate-500 hover:text-slate-700'}`}
+                    className={`px-4 py-2 rounded-lg text-sm font-bold transition-all capitalize ${observatoryTab === tab ? 'bg-white shadow-sm text-indigo-600' : 'text-slate-500 hover:text-slate-700'}`}
                     >
                     {tab}
                     </button>
